@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Калькулятор 3D-печати</title>
+  <meta name="description" content="Себестоимость 3D-печати и цена продажи: пластик, электричество, износ, работа, брак. Чтение .3mf и G-code, расчёт для Ozon по официальным тарифам.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='20' width='24' height='6' rx='1.5' fill='%230f766e'/%3E%3Crect x='9' y='13' width='14' height='6' rx='1.5' fill='%2314b8a6'/%3E%3Crect x='13' y='6' width='6' height='6' rx='1.5' fill='%235eead4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect x="4" y="20" width="24" height="6" rx="1.5" fill="var(--accent-strong)"/><rect x="9" y="13" width="14" height="6" rx="1.5" fill="var(--accent)"/><rect x="13" y="6" width="6" height="6" rx="1.5" fill="var(--accent-soft-strong)"/></svg>
+      <div>
+        <h1>Калькулятор 3D-печати</h1>
+        <p class="sub">Себестоимость и цена продажи. Данные хранятся только в вашем браузере.</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="calc" aria-selected="true">Расчёт</button>
+      <button role="tab" data-tab="refs" aria-selected="false">Справочники</button>
+      <button role="tab" data-tab="saved" aria-selected="false">Мои изделия</button>
+      <button role="tab" data-tab="help" aria-selected="false">Как считается</button>
+    </nav>
+    <button class="theme" id="themeBtn" type="button" title="Светлая / тёмная тема" aria-label="Переключить тему">◐</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ================= РАСЧЁТ ================= -->
+  <section id="tab-calc" class="tab" role="tabpanel">
+    <div class="grid">
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <input id="productName" class="title-input" placeholder="Название изделия" aria-label="Название изделия">
+            <div class="head-actions">
+              <button class="btn" id="saveProduct" type="button">Сохранить</button>
+              <button class="btn ghost" id="newProduct" type="button">Новое</button>
+            </div>
+          </div>
+
+          <div id="drop" class="drop" tabindex="0" role="button" aria-label="Загрузить файл слайсера">
+            <input type="file" id="fileInput" accept=".3mf,.gcode,.gco,.g" multiple hidden>
+            <strong>Перетащите сюда .3mf или .gcode</strong>
+            <span>или нажмите, чтобы выбрать. Граммы и время каждого стола заполнятся сами.</span>
+          </div>
+          <div id="fileMsg" class="msg" hidden></div>
+
+          <div class="parts-head">
+            <h2>Детали</h2>
+            <button class="btn small" id="addPart" type="button">+ Деталь</button>
+          </div>
+          <div class="table-scroll">
+            <table class="parts">
+              <thead>
+                <tr>
+                  <th>Деталь</th>
+                  <th title="Граммы на весь стол из слайсера (или на одну штуку, если «шт. на столе» = 1)">Граммы</th>
+                  <th title="Время печати стола: часы и минуты">Время</th>
+                  <th title="Сколько одинаковых деталей печатается на этом столе за раз. Граммы и время делятся на это число">Шт. на столе</th>
+                  <th title="Сколько таких деталей нужно на одно изделие">Нужно шт.</th>
+                  <th>Материал / принтер</th>
+                  <th class="num">₽ за изделие</th>
+                  <th aria-label="Удалить"></th>
+                </tr>
+              </thead>
+              <tbody id="partsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="extras">
+            <label>Работа, мин на изделие
+              <input type="number" min="0" step="1" id="laborMin" inputmode="decimal">
+              <small>снять со стола, обработать, собрать, упаковать</small>
+            </label>
+            <label>Упаковка, ₽
+              <input type="number" min="0" step="1" id="packaging" inputmode="decimal">
+              <small>коробка, плёнка, этикетка</small>
+            </label>
+            <label>Прочие материалы, ₽
+              <input type="number" min="0" step="1" id="otherCost" inputmode="decimal">
+              <small>магниты, клей, вставки</small>
+            </label>
+          </div>
+        </div>
+
+        <!-- ================= ПРОДАЖА ================= -->
+        <div class="card">
+          <div class="card-head">
+            <h2>Продажа</h2>
+            <div class="seg" role="radiogroup" aria-label="Режим продажи" id="saleMode">
+              <button type="button" data-mode="off" role="radio">Не считать</button>
+              <button type="button" data-mode="markup" role="radio">Наценка</button>
+              <button type="button" data-mode="ozon" role="radio">Ozon</button>
+              <button type="button" data-mode="custom" role="radio">Другая площадка</button>
+            </div>
+          </div>
+
+          <div id="saleBody">
+            <div class="sale-common" data-show="markup ozon custom">
+              <label data-show="markup">Наценка, %
+                <input type="number" min="0" step="1" id="markupPct" inputmode="decimal">
+              </label>
+              <label>Налог, % от цены
+                <input type="number" min="0" step="0.1" id="taxPct" inputmode="decimal">
+                <small>самозанятый 4–6 %, УСН «доходы» 6 %</small>
+              </label>
+              <label data-show="ozon custom">Желаемая прибыль
+                <span class="inline">
+                  <input type="number" min="0" step="1" id="profitVal" inputmode="decimal">
+                  <select id="profitMode" aria-label="Единица прибыли">
+                    <option value="pct">% от цены</option>
+                    <option value="rub">₽ с изделия</option>
+                  </select>
+                </span>
+              </label>
+            </div>
+
+            <div data-show="ozon" class="ozon">
+              <label class="wide">Категория товара на Ozon
+                <input type="search" id="ozonSearch" placeholder="Начните вводить тип товара: «горшок», «подставка», «фигурка»…" autocomplete="off">
+                <div id="ozonResults" class="results" role="listbox" hidden></div>
+                <small id="ozonPicked" class="picked"></small>
+              </label>
+              <div class="row3">
+                <label>Схема работы
+                  <select id="ozonScheme"></select>
+                </label>
+                <label>Эквайринг, %
+                  <input type="number" min="0" step="0.1" id="ozonAcq" inputmode="decimal">
+                  <small>плата банку за оплату картой</small>
+                </label>
+                <label>Прочие расходы, ₽ на заказ
+                  <input type="number" min="0" step="1" id="ozonOther" inputmode="decimal">
+                  <small>обработка отправления, доставка до СЦ и т. п.</small>
+                </label>
+              </div>
+              <fieldset class="logi">
+                <legend>Логистика Ozon</legend>
+                <div class="row3">
+                  <label>Упаковка, см (Д × Ш × В)
+                    <span class="inline dims">
+                      <input type="number" min="0" step="0.5" id="dimL" aria-label="Длина, см" inputmode="decimal">
+                      <input type="number" min="0" step="0.5" id="dimW" aria-label="Ширина, см" inputmode="decimal">
+                      <input type="number" min="0" step="0.5" id="dimH" aria-label="Высота, см" inputmode="decimal">
+                    </span>
+                  </label>
+                  <label>Откуда везём (кластер)
+                    <select id="ozonOrigin"></select>
+                  </label>
+                  <label>Какой тариф брать
+                    <select id="logiMode">
+                      <option value="local">внутри своего кластера</option>
+                      <option value="avg">в среднем по России</option>
+                      <option value="max">самый дорогой</option>
+                      <option value="manual">ввести вручную</option>
+                    </select>
+                  </label>
+                </div>
+                <label data-logi-manual>Логистика, ₽ за заказ
+                  <input type="number" min="0" step="1" id="logiManual" inputmode="decimal">
+                </label>
+              </fieldset>
+              <p class="note" id="ozonNote"></p>
+            </div>
+
+            <div data-show="custom" class="row3">
+              <label>Комиссия площадки, %
+                <input type="number" min="0" step="0.1" id="cComm" inputmode="decimal">
+              </label>
+              <label>Логистика, ₽ за заказ
+                <input type="number" min="0" step="1" id="cLogi" inputmode="decimal">
+              </label>
+              <label>Эквайринг, %
+                <input type="number" min="0" step="0.1" id="cAcq" inputmode="decimal">
+              </label>
+              <label>Прочие расходы, ₽ на заказ
+                <input type="number" min="0" step="1" id="cOther" inputmode="decimal">
+              </label>
+            </div>
+
+            <div data-show="off" class="muted">Блок выключен — считается только себестоимость. Включите «Наценка» или площадку, когда понадобится цена продажи.</div>
+
+            <div id="saleResult" data-show="markup ozon custom"></div>
+
+            <div class="check" data-show="markup ozon custom">
+              <label>Проверить свою цену, ₽
+                <input type="number" min="0" step="1" id="checkPrice" inputmode="decimal" placeholder="например, 3990">
+              </label>
+              <div id="checkResult"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= ИТОГ ================= -->
+      <aside class="col side">
+        <div class="card sticky" id="summary" aria-live="polite"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= СПРАВОЧНИКИ ================= -->
+  <section id="tab-refs" class="tab" role="tabpanel" hidden>
+    <div class="card">
+      <h2>Общие настройки</h2>
+      <div class="row4">
+        <label>Тариф на электричество, ₽/кВт·ч
+          <input type="number" min="0" step="0.01" data-set="tariff" inputmode="decimal">
+        </label>
+        <label>Ставка за работу, ₽/час
+          <input type="number" min="0" step="10" data-set="laborRate" inputmode="decimal">
+        </label>
+        <label>Брак, %
+          <input type="number" min="0" max="90" step="0.5" data-set="brakPct" inputmode="decimal">
+          <small>доля неудачных печатей</small>
+        </label>
+        <label>Принтер работает, часов в сутки
+          <input type="number" min="0" max="24" step="1" data-set="hoursPerDay" inputmode="decimal">
+          <small>для расчёта «изделий в месяц»</small>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Принтеры</h2><button class="btn small" id="addPrinter" type="button">+ Принтер</button></div>
+      <div class="table-scroll">
+        <table class="refs">
+          <thead><tr><th>Название</th><th>Мощность, Вт</th><th>Цена, ₽</th><th>Ресурс, ч</th><th>Обслуживание, ₽/ч</th><th class="num">Износ, ₽/ч</th><th></th></tr></thead>
+          <tbody id="printersBody"></tbody>
+        </table>
+      </div>
+      <p class="note">Мощность — средняя за печать (не максимальная из паспорта): лучше всего измерить ваттметром-розеткой. Ресурс — сколько часов принтер проработает до замены. Обслуживание — сопла, лист стола, ремни, смазка в пересчёте на час.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Материалы</h2><button class="btn small" id="addMaterial" type="button">+ Материал</button></div>
+      <div class="table-scroll">
+        <table class="refs">
+          <thead><tr><th>Название</th><th>Цена катушки, ₽</th><th>Вес катушки, г</th><th class="num">₽ за грамм</th><th></th></tr></thead>
+          <tbody id="materialsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= МОИ ИЗДЕЛИЯ ================= -->
+  <section id="tab-saved" class="tab" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h2>Мои изделия</h2>
+        <div class="head-actions">
+          <button class="btn ghost small" id="exportJson" type="button">Скачать всё (.json)</button>
+          <button class="btn ghost small" id="importJson" type="button">Загрузить из файла</button>
+          <button class="btn ghost small" id="exportCsv" type="button">Таблица для Excel (.csv)</button>
+          <input type="file" id="importInput" accept=".json,application/json" hidden>
+        </div>
+      </div>
+      <div id="savedList"></div>
+      <p class="note">Всё хранится в этом браузере. Чтобы перенести данные на другой компьютер или не потерять их при очистке браузера — скачайте файл .json и загрузите его там.</p>
+    </div>
+  </section>
+
+  <!-- ================= КАК СЧИТАЕТСЯ ================= -->
+  <section id="tab-help" class="tab" role="tabpanel" hidden>
+    <div class="card prose">
+      <h2>Как считается себестоимость</h2>
+      <ul>
+        <li><b>Пластик</b> = граммы × цена катушки ÷ вес катушки.</li>
+        <li><b>Электричество</b> = часы × мощность (кВт) × тариф.</li>
+        <li><b>Износ принтера</b> = часы × (цена принтера ÷ ресурс в часах + обслуживание в час).</li>
+        <li><b>Брак</b>: печать делится на (1 − доля брака). Если из 10 печатей одна неудачная, на 9 удачных уходит пластик и время 10 печатей. Работа и упаковка в брак не входят.</li>
+        <li><b>Работа</b> = минуты ÷ 60 × ставка за час.</li>
+        <li>Плюс упаковка и прочие материалы.</li>
+      </ul>
+      <p>Граммы и время берутся из файла слайсера: в <code>.3mf</code> Bambu Studio и OrcaSlicer записывают их для каждого нарезанного стола, в G-code — в комментариях. Если на столе несколько одинаковых деталей, укажите их число в «Шт. на столе» — граммы и время разделятся.</p>
+
+      <h2>Как считается цена продажи</h2>
+      <p><b>Наценка</b>: цена = себестоимость × (1 + наценка) ÷ (1 − налог).</p>
+      <p><b>Площадка</b>: ищется минимальная цена, при которой после всех удержаний остаётся желаемая прибыль:</p>
+      <p class="formula">цена − комиссия − логистика − эквайринг − прочие − налог − себестоимость ≥ прибыль</p>
+      <p><b>Безубыточность</b> — та же цена при нулевой прибыли: ниже неё каждая продажа в минус.</p>
+
+      <h2>Ozon</h2>
+      <p>Ставки комиссии и тарифы логистики взяты из официальных таблиц Ozon: <span id="ozonDate"></span>. Источник — <a id="ozonSrc" target="_blank" rel="noopener">База знаний продавца Ozon</a>.</p>
+      <ul>
+        <li>С декабря 2026 года Ozon называет ставку «предельной»: продавец получает <i>предельную цену × (1 − ставка)</i>, а скидки покупателю Ozon покрывает из своей части. Поэтому в калькуляторе «цена» — это предельная цена в личном кабинете.</li>
+        <li>Ставка зависит от цены: до 100 ₽, 101–300 ₽ и дороже 300 ₽ — калькулятор подбирает диапазон сам.</li>
+        <li>Логистика зависит от объёма упаковки (литры = Д × Ш × В ÷ 1000) и направления. «Внутри кластера» — самый дешёвый случай, «в среднем по России» — среднее по всем направлениям из вашего кластера.</li>
+        <li>Ozon может снижать стоимость услуг коэффициентом Кр — калькулятор его не учитывает, то есть считает с запасом.</li>
+        <li>Не учтены: обратная логистика при возвратах и невыкупах, размещение на складе после бесплатного периода, реклама, акции. Добавьте их в «Прочие расходы», если знаете свои цифры.</li>
+      </ul>
+      <p class="muted">Калькулятор даёт оценку, а не бухгалтерский расчёт. Точные удержания — в отчётах личного кабинета.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <span>Открытый проект, лицензия MIT.</span>
+  <span id="ozonFoot"></span>
+</footer>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="data/ozon-data.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/slicer.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
