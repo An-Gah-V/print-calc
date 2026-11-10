@@ -1,0 +1,11 @@
+name: Идея или пожелание
+description: Чего не хватает калькулятору, что неудобно или непонятно
+labels: ["идея"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Что предлагаете
+      description: Опишите, что хотелось бы и зачем — как вы сейчас считаете и где калькулятор мешает.
+    validations:
+      required: true

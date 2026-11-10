@@ -1,0 +1,28 @@
+name: Ошибка
+description: Неверный расчёт, не читается файл слайсера, что-то сломалось на странице
+labels: ["ошибка"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Что случилось
+      description: Что вы сделали, что получилось и что ожидали увидеть.
+      placeholder: |
+        Загрузил .3mf с двумя столами, у второго стола время 0 ч 0 мин, а в Bambu Studio — 3 ч 41 мин.
+    validations:
+      required: true
+  - type: textarea
+    id: numbers
+    attributes:
+      label: Введённые данные
+      description: Граммы, время, «Одинаковых на столе», «Нужно на 1 изделие», принтер, материал, тариф — всё, что влияет на результат. Можно скриншот.
+  - type: textarea
+    id: files
+    attributes:
+      label: Файл слайсера
+      description: Если ошибка при загрузке файла — перетащите сюда .3mf или .gcode (GitHub принимает их в zip-архиве).
+  - type: input
+    id: browser
+    attributes:
+      label: Браузер и устройство
+      placeholder: Chrome на Windows / Safari на iPhone
