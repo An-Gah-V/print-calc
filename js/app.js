@@ -120,6 +120,13 @@
     if (name === "saved") renderSaved();
   }
   $$(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  // ссылки «подробнее»: открыть «Справку» и прокрутить к нужному разделу
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-goto]"); if (!a) return;
+    e.preventDefault();
+    showTab("help");
+    document.getElementById(a.dataset.goto)?.scrollIntoView({ block: "start" });
+  });
   try { const th = localStorage.getItem(KEY + ".theme"); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
   $("#themeBtn").addEventListener("click", () => {
     const dark = document.documentElement.dataset.theme
@@ -548,7 +555,7 @@
     try {
       const d = JSON.parse(await f.text());
       if (d.app !== "print-calc" || !Array.isArray(d.printers) || !Array.isArray(d.materials)) throw new Error("это не файл калькулятора");
-      if (!confirm("Заменить текущие справочники и список изделий данными из файла?")) return;
+      if (!confirm("Заменить текущие справочники, список изделий и текущий расчёт данными из файла?")) return;
       // собираем во временную переменную; если отрисовка упадёт — возвращаем прежнее состояние
       const prev = S;
       try { S = sanitize(d); renderAll(); renderSaved(); }
