@@ -36,6 +36,7 @@ py -m http.server 8765 --bind 127.0.0.1
 | `js/app.js` | интерфейс: таблицы, сохранение, поиск категории |
 | `data/ozon-data.js` | ставки и тарифы Ozon (собирается скриптом, руками не править) |
 | `tools/build_ozon_data.py` | превращает официальные xlsx Ozon в `data/ozon-data.js` |
+| `og.png`, `tools/og-card.html` | картинка-превью для ссылок в ВК и Telegram и её шаблон (как пересобрать — в начале шаблона) |
 
 ## Как обновить тарифы Ozon
 1. Откройте [Полный список комиссий и тарифов](https://seller-edu.ozon.ru/docs/commissions-tariffs/legal-information/full-actual-commissions.html).
