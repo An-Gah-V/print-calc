@@ -555,7 +555,7 @@
     try {
       const d = JSON.parse(await f.text());
       if (d.app !== "print-calc" || !Array.isArray(d.printers) || !Array.isArray(d.materials)) throw new Error("это не файл калькулятора");
-      if (!confirm("Заменить текущие справочники, список изделий и текущий расчёт данными из файла?")) return;
+      if (!confirm("Заменить текущие тарифы, принтеры, материалы, список изделий и текущий расчёт данными из файла?")) return;
       // собираем во временную переменную; если отрисовка упадёт — возвращаем прежнее состояние
       const prev = S;
       try { S = sanitize(d); renderAll(); renderSaved(); }
