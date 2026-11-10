@@ -146,8 +146,8 @@
         <td data-label="Граммы"><input type="number" min="0" step="0.1" data-f="grams" value="${esc(p.grams)}" aria-label="Граммы" inputmode="decimal"></td>
         <td data-label="Время"><div class="time"><input type="number" min="0" step="1" data-f="hh" value="${hh}" aria-label="Часы" inputmode="numeric"><span>ч</span>
           <input type="number" min="0" max="59" step="1" data-f="mm" value="${mm}" aria-label="Минуты" inputmode="numeric"><span>мин</span></div></td>
-        <td data-label="Шт. на столе"><input type="number" min="1" step="1" data-f="perPlate" value="${esc(p.perPlate)}" aria-label="Штук на столе" inputmode="numeric"></td>
-        <td data-label="Нужно шт."><input type="number" min="0" step="1" data-f="qty" value="${esc(p.qty)}" aria-label="Нужно штук на изделие" inputmode="numeric"></td>
+        <td data-label="Одинаковых на столе"><input type="number" min="1" step="1" data-f="perPlate" value="${esc(p.perPlate)}" aria-label="Одинаковых деталей на столе" inputmode="numeric"></td>
+        <td data-label="Нужно на 1 изделие"><input type="number" min="0" step="1" data-f="qty" value="${esc(p.qty)}" aria-label="Нужно штук на одно изделие" inputmode="numeric"></td>
         <td data-label="Материал / принтер"><div class="part-sel">
           <select data-f="materialId" aria-label="Материал">${optionList(S.materials, p.materialId)}</select>
           <select data-f="printerId" aria-label="Принтер">${optionList(S.printers, p.printerId)}</select></div></td>
@@ -207,7 +207,7 @@
       const last = parts[parts.length - 1];
       for (const pl of added) {
         S.product.parts.push({ id: uid(), name: pl.name, grams: pl.grams != null ? +pl.grams.toFixed(2) : "",
-          hours: pl.hours != null ? pl.hours : "", perPlate: Math.max(pl.objects || 1, 1), qty: Math.max(pl.objects || 1, 1),
+          hours: pl.hours != null ? pl.hours : "", perPlate: Math.max(pl.copies || 1, 1), qty: Math.max(pl.copies || 1, 1),
           printerId: last?.printerId || S.printers[0].id, materialId: last?.materialId || S.materials[0].id });
       }
       if (!S.product.name) S.product.name = added[0].file.replace(/\.(gcode\.)?(3mf|gcode|gco|g)$/i, "");
@@ -216,8 +216,15 @@
     const notes = added.filter((x) => x.note).map((x) => `${x.name}: ${x.note}`);
     msg.hidden = false;
     msg.className = "msg" + (errors.length && !added.length ? " err" : "");
+    // по каждому столу объясняем, как поняли его содержимое
+    const plateLines = added.map((pl) => {
+      if (pl.copies > 1) return `${esc(pl.name)}: одинаковых деталей — ${pl.copies}, граммы и время разделены на ${pl.copies}.`;
+      if (pl.kinds && pl.kinds.length > 1) return `${esc(pl.name)}: разные детали (${pl.kinds.length} шт.) — строка считается как весь стол, один комплект.`;
+      return "";
+    }).filter(Boolean);
     msg.innerHTML = [
-      added.length ? `Добавлено столов: ${added.length}. Проверьте «Шт. на столе» и «Нужно шт.» — сколько деталей на столе и сколько их нужно на изделие.` : "",
+      added.length ? `Добавлено столов: ${added.length}. Проверьте «Нужно на 1 изделие» — сколько таких деталей (или комплектов со стола) идёт в одно изделие.` : "",
+      ...plateLines,
       ...notes.map(esc), ...errors.map((x) => `<span class="err-line">${esc(x)}</span>`),
     ].filter(Boolean).join("<br>");
   }

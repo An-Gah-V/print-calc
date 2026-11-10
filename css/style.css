@@ -127,6 +127,7 @@ th[title] { cursor: help; text-decoration: underline dotted; text-underline-offs
 td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.num { padding-top: 12px; }
+.parts th { white-space: normal; vertical-align: bottom; } /* длинные подписи столбцов переносятся на 2 строки */
 .parts td:first-child { min-width: 170px; }
 .parts input[type="number"] { width: 78px; }
 .time { display: flex; gap: 4px; align-items: center; }

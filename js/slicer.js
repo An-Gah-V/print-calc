@@ -141,6 +141,7 @@ const Slicer = (() => {
         if (isNaN(grams)) {
           grams = [...pl.querySelectorAll("filament")].reduce((s, f) => s + (parseFloat(f.getAttribute("used_g")) || 0), 0) || NaN;
         }
+        // предметы на столе (граммы и время слайсер дал на все сразу)
         const objects = [...pl.querySelectorAll("object")].map((o) => o.getAttribute("name")).filter(Boolean);
         if (isNaN(pred) && isNaN(grams)) continue;
         // название детали — имена моделей на столе (без .stl), иначе «Стол N»
@@ -150,6 +151,11 @@ const Slicer = (() => {
           grams: isNaN(grams) ? null : grams,
           hours: isNaN(pred) ? null : pred / 3600,
           objects: objects.length,
+          // копии одной модели в слайсере носят одно имя (24 × Ring43.stl) — тогда стол делим
+          // на штуки; если модели разные (стакан + крышка, левая + правая боковина),
+          // делить нельзя: строка — это весь стол, то есть один комплект
+          copies: uniq.length === 1 ? objects.length : 1,
+          kinds: uniq,
           note: "",
         });
       }
