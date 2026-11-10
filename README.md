@@ -56,9 +56,9 @@ py -m http.server 8765 --bind 127.0.0.1
 
 ## Как помочь проекту
 Калькулятор сейчас тестируется — любые замечания очень помогут.
-- **Нашли ошибку в расчёте или в чтении файла?** Создайте [обращение на GitHub](https://github.com/An-Gah-V/print-calc/issues/new/choose) (там готовая форма) или напишите в Telegram: [@An_Gah_V](https://t.me/An_Gah_V).
+- **Нашли ошибку в расчёте или в чтении файла?** Создайте [обращение на GitHub](https://github.com/An-Gah-V/print-calc/issues/new/choose) (там готовая форма) или напишите боту в Telegram: [@Print_calc_help_bot](https://t.me/Print_calc_help_bot?start=bug) — аккаунт на GitHub не нужен.
 - Если не так прочитался файл слайсера — приложите его (`.3mf` или `.gcode`, можно в zip): так ошибку проще повторить.
-- **Идеи и вопросы** — в [обсуждениях](https://github.com/An-Gah-V/print-calc/discussions) или в Telegram.
+- **Идеи и вопросы** — в [обсуждениях](https://github.com/An-Gah-V/print-calc/discussions) или [боту в Telegram](https://t.me/Print_calc_help_bot?start=idea).
 
 ## Лицензия
 MIT — см. [LICENSE](LICENSE). Ставки и тарифы Ozon взяты из открытых документов Ozon и принадлежат Ozon.

@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Написать в Telegram
-    url: https://t.me/An_Gah_V
-    about: Если нет аккаунта на GitHub или удобнее в мессенджере.
+  - name: Написать боту в Telegram
+    url: https://t.me/Print_calc_help_bot?start=bug
+    about: Если нет аккаунта на GitHub или удобнее в мессенджере — бот передаст сообщение автору.
