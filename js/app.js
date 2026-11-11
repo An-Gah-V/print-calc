@@ -414,6 +414,9 @@
       // тот же формат, что у кнопки «+ Принтер»; мощность — для PLA
       S.printers.push({ id: uid(), name: p.brand + " " + p.model, powerW: p.pla, price: 50000, lifeH: 5000, maintPerH: 3 });
       renderRefs(); renderParts(); update();
+      const row = $("#printersBody tr:last-child");
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("flash");
       toast(`Добавлен ${p.brand} ${p.model}: ${p.pla} Вт. Впишите цену и ресурс в таблице «Принтеры»`);
     });
   } else {
