@@ -381,6 +381,52 @@
     S.printers.push({ id: uid(), name: "Принтер " + (S.printers.length + 1), powerW: 150, price: 50000, lifeH: 5000, maintPerH: 3 });
     renderRefs(); renderParts(); update();
   });
+  // ---------- справочник потребления принтеров (data/printer-power.js) ----------
+  const PP = window.PRINTER_POWER || null;
+  const REL = { off: "официально", rev: "замер обзора", est: "оценка" };
+  const watt = (x) => (x == null ? "—" : fmt0.format(x));
+  function renderPower() {
+    const brand = $("#powerBrand").value;
+    $("#powerBody").innerHTML = PP.printers.map((p, i) => ({ p, i })).filter(({ p }) => !brand || p.brand === brand)
+      .map(({ p, i }) => `<tr>
+        <td class="mdl"><b>${esc(p.brand)} ${esc(p.model)}</b><small>${esc(p.type)}</small><small class="why">${esc(p.note)}</small></td>
+        <td class="num" data-label="Ожидание">${esc(p.idle || "—")}</td>
+        <td class="num hi" data-label="PLA">${watt(p.pla)}</td><td class="num" data-label="PETG">${watt(p.petg)}</td>
+        <td class="num" data-label="ABS/ASA">${watt(p.abs)}</td><td class="num" data-label="PC">${watt(p.pc)}</td>
+        <td class="num max" data-label="Паспорт (не расход)">${watt(p.max)}</td>
+        <td><span class="rel ${esc(p.rel)}">${esc(REL[p.rel] || "")}</span></td>
+        <td>${p.pla ? `<button class="btn small ghost" type="button" data-add-power="${i}" title="Добавить в мои принтеры с мощностью ${p.pla} Вт" aria-label="Добавить ${esc(p.brand + " " + p.model)} в мои принтеры">+</button>` : ""}</td></tr>`).join("");
+  }
+  if (PP) {
+    const brands = [...new Set(PP.printers.map((p) => p.brand))];
+    $("#powerBrand").innerHTML = `<option value="">Все бренды</option>` + brands.map((b) => `<option>${esc(b)}</option>`).join("");
+    $("#powerBrand").addEventListener("change", renderPower);
+    $("#powerUpdated").textContent = "(собраны " + PP.updated + ")";
+    // источники выводим один раз, без повторов одной ссылки
+    const seen = new Set();
+    $("#powerSources").innerHTML = Object.values(PP.sources).filter((s) => !seen.has(s.url) && seen.add(s.url))
+      .map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a></li>`).join("");
+    renderPower();
+    $("#powerBody").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-add-power]");
+      if (!b) return;
+      const p = PP.printers[+b.dataset.addPower];
+      // тот же формат, что у кнопки «+ Принтер»; мощность — для PLA
+      S.printers.push({ id: uid(), name: p.brand + " " + p.model, powerW: p.pla, price: 50000, lifeH: 5000, maintPerH: 3 });
+      renderRefs(); renderParts(); update();
+      toast(`Добавлен ${p.brand} ${p.model}: ${p.pla} Вт. Впишите цену и ресурс в таблице «Принтеры»`);
+    });
+  } else {
+    $("#powerRef").hidden = true; // файл данных не загрузился — блок и ссылку на него не показываем
+    $("#powerHint").hidden = true;
+  }
+  $("[data-open-power]").addEventListener("click", (e) => {
+    e.preventDefault();
+    const d = $("#powerRef");
+    d.open = true;
+    d.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
   $("#addMaterial").addEventListener("click", () => {
     S.materials.push({ id: uid(), name: "Материал " + (S.materials.length + 1), spoolPrice: 1200, spoolG: 1000 });
     renderRefs(); renderParts(); update();

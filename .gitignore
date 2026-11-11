@@ -7,3 +7,5 @@ data/ozon-raw/
 # служебное
 __pycache__/
 .claude/
+# временные файлы открытого Excel/Word
+~$*
